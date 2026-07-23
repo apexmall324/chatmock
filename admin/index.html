@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Activity Monitor</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header class="topbar">
+      <div>
+        <h1>Admin Activity Monitor</h1>
+        <p>Local activity logs for this website.</p>
+      </div>
+      <div class="actions">
+        <button id="refreshBtn">Refresh</button>
+        <button id="exportBtn">Export CSV</button>
+        <button id="clearBtn">Clear Logs</button>
+      </div>
+    </header>
+
+    <div class="notice">
+      Browser-based monitoring can record page visits and clicks. Exact IP and real-world location require a server-side backend with user consent.
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Page</th>
+            <th>Event</th>
+            <th>Element</th>
+            <th>Details</th>
+          </tr>
+        </thead>
+        <tbody id="logRows"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
