@@ -1,764 +1,525 @@
-// ===============================
-// ELEMENTS
-// ===============================
+"use strict";
 
-const chat = document.getElementById("chat");
-const contactInput = document.getElementById("contactInput");
-const statusInput = document.getElementById("statusInput");
-const themeInput = document.getElementById("themeInput");
-const wallpaperInput = document.getElementById("wallpaperInput");
-const typingInput = document.getElementById("typingInput");
-const messageStatusInput = document.getElementById("messageStatusInput");
-const messageInput = document.getElementById("messageInput");
-const timeInput = document.getElementById("timeInput");
-const typeInput = document.getElementById("typeInput");
-const profile = document.getElementById("profile");
-const profileUpload = document.getElementById("profileUpload");
-const phoneTime = document.getElementById("phoneTime");
-const contactName = document.getElementById("contactName");
-const status = document.getElementById("status");
-const typingIndicator = document.getElementById("typingIndicator");
-const phonePreview = document.querySelector(".phone");
-const chatPreview = document.getElementById("chat");
-const emojiPicker = document.getElementById("emojiPicker");
+const STORAGE_KEY = "chatmockData";
+const LEGACY_STORAGE_KEY = "chatData";
+const DEFAULT_PROFILE = "assets/profile.png";
+const MAX_PROFILE_SIZE = 2 * 1024 * 1024;
+const MAX_IMPORT_SIZE = 5 * 1024 * 1024;
 
-const addMessageBtn = document.getElementById("addMessage");
-const saveChatBtn = document.getElementById("saveChat");
-const clearChatBtn = document.getElementById("clearChat");
-const screenshotBtn = document.getElementById("downloadChat");
-const exportChatBtn = document.getElementById("exportChat");
-const importChatBtn = document.getElementById("importChat");
-const importChatInput = document.getElementById("importChatInput");
-const changeProfileBtn = document.getElementById("changeProfile");
-const toast = document.getElementById("toast");
-const monitorStorageKey = "chatMonitorLog";
-const visitorIdKey = "chatVisitorId";
-const visitorId = (() => {
+const elements = {
+    chat: document.getElementById("chat"),
+    contactInput: document.getElementById("contactInput"),
+    statusInput: document.getElementById("statusInput"),
+    themeInput: document.getElementById("themeInput"),
+    wallpaperInput: document.getElementById("wallpaperInput"),
+    typingInput: document.getElementById("typingInput"),
+    messageStatusInput: document.getElementById("messageStatusInput"),
+    messageInput: document.getElementById("messageInput"),
+    timeInput: document.getElementById("timeInput"),
+    typeInput: document.getElementById("typeInput"),
+    phoneTimeInput: document.getElementById("phoneTimeInput"),
+    profile: document.getElementById("profile"),
+    profileThumb: document.getElementById("profileThumb"),
+    profileUpload: document.getElementById("profileUpload"),
+    phoneTime: document.getElementById("phoneTime"),
+    contactName: document.getElementById("contactName"),
+    status: document.getElementById("status"),
+    typingIndicator: document.getElementById("typingIndicator"),
+    onlineIndicator: document.querySelector(".online-indicator"),
+    phonePreview: document.getElementById("phonePreview"),
+    emptyChat: document.getElementById("emptyChat"),
+    messageCount: document.getElementById("messageCount"),
+    messageWord: document.getElementById("messageWord"),
+    emojiPicker: document.getElementById("emojiPicker"),
+    addMessage: document.getElementById("addMessage"),
+    saveChat: document.getElementById("saveChat"),
+    clearChat: document.getElementById("clearChat"),
+    downloadChat: document.getElementById("downloadChat"),
+    exportChat: document.getElementById("exportChat"),
+    importChat: document.getElementById("importChat"),
+    importChatInput: document.getElementById("importChatInput"),
+    changeProfile: document.getElementById("changeProfile"),
+    toast: document.getElementById("toast"),
+    autosaveLabel: document.querySelector(".autosave-label")
+};
 
-    let current = localStorage.getItem(visitorIdKey);
+let messages = [];
+let profileImage = DEFAULT_PROFILE;
+let toastTimeout;
+let saveTimeout;
 
-    if (!current) {
+function formatTime(date = new Date()) {
+    return new Intl.DateTimeFormat([], {
+        hour: "numeric",
+        minute: "2-digit"
+    }).format(date);
+}
 
-        current = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-        localStorage.setItem(visitorIdKey, current);
-
-    }
-
-    return current;
-
-})();
-
-// ===============================
-// HELPERS
-// ===============================
-
-function formatTime(now = new Date()) {
-
-    return now.toLocaleTimeString([], {
-
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false
-
-    });
-
+function formatClockTime(value) {
+    const [hours, minutes] = value.split(":").map(Number);
+    if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return value;
+    const suffix = hours >= 12 ? "PM" : "AM";
+    return `${hours % 12 || 12}:${String(minutes).padStart(2, "0")} ${suffix}`;
 }
 
 function showToast(message) {
-
-    toast.textContent = message;
-    toast.classList.add("show");
-
-    clearTimeout(showToast.timeoutId);
-
-    showToast.timeoutId = setTimeout(() => {
-
-        toast.classList.remove("show");
-
-    }, 2000);
-
+    elements.toast.textContent = message;
+    elements.toast.classList.add("show");
+    clearTimeout(toastTimeout);
+    toastTimeout = setTimeout(() => elements.toast.classList.remove("show"), 2800);
 }
 
-function updatePhoneTime() {
-
-    phoneTime.textContent = formatTime();
-
-}
-
-function logActivity(eventName, elementName, details = {}) {
-
-    const entry = {
-
-        page: window.location.pathname,
-        event: eventName,
-        element: elementName,
-        details: {
-
-            ...details,
-            visitorId,
-            url: window.location.href,
-            userAgent: navigator.userAgent,
-            language: navigator.language,
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            screen: `${window.screen.width}x${window.screen.height}`,
-            viewport: `${window.innerWidth}x${window.innerHeight}`
-
-        }
-
-    };
-
-    fetch('/api/log', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(entry)
-    }).catch(() => {});
-
-}
-
-function captureInteraction(eventName, event) {
-
-    const target = event.target;
-    const selector = target.closest("button, input, textarea, select, a, .message, [role='button'], label, .emoji-button");
-    const element = selector || target;
-    const label = element && element.tagName ? element.tagName.toLowerCase() : "unknown";
-    const text = element && element.textContent ? element.textContent.trim().slice(0, 80) : "";
-
-    logActivity(eventName, label, {
-        text,
-        id: element?.id || "",
-        className: element?.className || ""
-    });
-
-}
-
-function getMessagesSnapshot() {
-
-    return Array.from(chat.querySelectorAll(".message")).map(message => ({
-
-        id: message.dataset.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        type: message.classList.contains("sent") ? "sent" : "received",
-        status: message.dataset.status || "sent",
-        html: message.innerHTML
-
-    }));
-
-}
-
-function buildTextExport() {
-
-    const lines = [];
-
-    lines.push(`Contact: ${contactInput.value}`);
-    lines.push(`Status: ${statusInput.value}`);
-    lines.push(`Theme: ${themeInput.value}`);
-    lines.push(`Wallpaper: ${wallpaperInput.value}`);
-    lines.push(`Typing: ${typingInput.value}`);
-    lines.push(`Profile: ${profile.src}`);
-    lines.push("Messages:");
-
-    getMessagesSnapshot().forEach(message => {
-
-        const text = message.innerHTML.replace(/<[^>]*>/g, "").trim();
-        const type = message.type || "received";
-        const status = message.dataset.status || "sent";
-
-        lines.push(`${type}|${status}|${text}`);
-
-    });
-
-    return lines.join("\n");
-
-}
-
-function applyImportedState(data) {
-
-    contactInput.value = data.contact || "";
-    statusInput.value = data.status || "online";
-    themeInput.value = data.theme || "dark";
-    wallpaperInput.value = data.wallpaper || "default";
-    typingInput.value = data.typing || "off";
-    messageStatusInput.value = data.messageStatus || "sent";
-    contactName.textContent = contactInput.value;
-    status.textContent = statusInput.value;
-
-    applyTheme(themeInput.value);
-    applyWallpaper(wallpaperInput.value);
-    toggleTypingIndicator(typingInput.value === "on");
-
-    if (data.profile) {
-
-        profile.src = data.profile;
-        localStorage.setItem("profileImage", data.profile);
-
-    }
-
-    chat.innerHTML = "";
-
-    if (Array.isArray(data.messages)) {
-
-        data.messages.forEach(message => {
-
-            const div = document.createElement("div");
-            div.className = "message " + (message.type || "received");
-            div.dataset.id = message.id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-            div.dataset.status = message.status || "sent";
-            div.innerHTML = message.html;
-
-            addDeleteEvent(div);
-            chat.appendChild(div);
-
-        });
-
-    }
-
-    chat.scrollTop = chat.scrollHeight;
-
-}
-
-function getStatusMarkup(statusValue) {
-
-    if (statusValue === "delivered") {
-
-        return '<span style="color:#c8d8de;"> ✓✓</span>';
-
-    }
-
-    if (statusValue === "read") {
-
-        return '<span style="color:#53bdeb;"> ✓✓</span>';
-
-    }
-
-    return '<span style="color:#e6f7ff;"> ✓</span>';
-
+function updateProfileSources(source) {
+    elements.profile.src = source;
+    elements.profileThumb.src = source;
 }
 
 function applyTheme(theme) {
-
-    phonePreview.classList.remove("light", "whatsapp");
-
-    if (theme === "light") {
-
-        phonePreview.classList.add("light");
-
-    } else if (theme === "whatsapp") {
-
-        phonePreview.classList.add("whatsapp");
-
+    elements.phonePreview.classList.remove("light", "whatsapp");
+    if (theme === "light" || theme === "whatsapp") {
+        elements.phonePreview.classList.add(theme);
     }
-
 }
 
 function applyWallpaper(wallpaper) {
-
-    chatPreview.classList.remove("wallpaper-soft", "wallpaper-night", "wallpaper-sunset");
-
-    if (wallpaper === "soft") {
-
-        chatPreview.classList.add("wallpaper-soft");
-
-    } else if (wallpaper === "night") {
-
-        chatPreview.classList.add("wallpaper-night");
-
-    } else if (wallpaper === "sunset") {
-
-        chatPreview.classList.add("wallpaper-sunset");
-
-    }
-
+    elements.chat.classList.remove(
+        "wallpaper-default",
+        "wallpaper-soft",
+        "wallpaper-night",
+        "wallpaper-sunset"
+    );
+    elements.chat.classList.add(`wallpaper-${wallpaper}`);
 }
 
-function toggleTypingIndicator(visible) {
-
-    typingIndicator.hidden = !visible;
-
+function updateContactPreview() {
+    elements.contactName.textContent = elements.contactInput.value.trim() || "Contact name";
 }
 
-// ===============================
-// CONTACT NAME
-// ===============================
+function updatePhoneClock() {
+    elements.phoneTime.textContent = formatClockTime(elements.phoneTimeInput.value || "09:41");
+}
 
-contactInput.addEventListener("input", () => {
+function updateStatusPreview() {
+    const isTyping = elements.typingInput.value === "on";
+    elements.status.textContent = elements.statusInput.value;
+    elements.status.hidden = isTyping;
+    elements.typingIndicator.hidden = !isTyping;
+    elements.onlineIndicator.hidden = !["online", "typing..."].includes(elements.statusInput.value);
+}
 
-    contactName.textContent = contactInput.value;
-    saveChat();
-
-});
-
-themeInput.addEventListener("change", () => {
-
-    applyTheme(themeInput.value);
-    saveChat();
-
-});
-
-wallpaperInput.addEventListener("change", () => {
-
-    applyWallpaper(wallpaperInput.value);
-    saveChat();
-
-});
-
-typingInput.addEventListener("change", () => {
-
-    toggleTypingIndicator(typingInput.value === "on");
-    saveChat();
-
-});
-
-messageStatusInput.addEventListener("change", () => {
-
-    saveChat();
-
-});
-
-// ===============================
-// STATUS
-// ===============================
-
-statusInput.addEventListener("change", () => {
-
-    status.textContent = statusInput.value;
-    saveChat();
-
-});
-
-// ===============================
-// PROFILE PICTURE
-// ===============================
-
-changeProfileBtn.addEventListener("click", () => {
-
-    profileUpload.click();
-
-});
-
-profileUpload.addEventListener("change", function () {
-
-    const file = this.files[0];
-
-    if (!file) return;
-
-    const reader = new FileReader();
-
-    reader.onload = function (e) {
-
-        profile.src = e.target.result;
-        localStorage.setItem("profileImage", e.target.result);
-        saveChat();
-
+function getState() {
+    return {
+        version: 2,
+        contact: elements.contactInput.value.trim(),
+        status: elements.statusInput.value,
+        profile: profileImage,
+        phoneTime: elements.phoneTimeInput.value,
+        theme: elements.themeInput.value,
+        wallpaper: elements.wallpaperInput.value,
+        typing: elements.typingInput.value,
+        messageStatus: elements.messageStatusInput.value,
+        messages
     };
-
-    reader.readAsDataURL(file);
-
-});
-
-// Load saved profile picture
-
-const savedProfile = localStorage.getItem("profileImage");
-
-if (savedProfile) {
-
-    profile.src = savedProfile;
-
 }
 
-// ===============================
-// ADD MESSAGE
-// ===============================
-
-addMessageBtn.addEventListener("click", () => {
-
-    const message = messageInput.value.trim();
-
-    if (message === "") return;
-
-    const type = typeInput.value;
-    const statusValue = messageStatusInput.value;
-    const id = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    let time = timeInput.value.trim();
-
-    if (time === "") {
-
-        time = formatTime();
-
+function saveChat({ notify = false } = {}) {
+    try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            ...getState(),
+            savedAt: new Date().toISOString()
+        }));
+        elements.autosaveLabel.innerHTML = '<span class="autosave-dot"></span> Auto-saved';
+        if (notify) showToast("Chat saved on this device.");
+        return true;
+    } catch (error) {
+        elements.autosaveLabel.textContent = "Save unavailable";
+        showToast("Could not save this chat. Your browser storage may be full or disabled.");
+        console.error("ChatMock could not save the chat locally.", error);
+        return false;
     }
+}
 
-    const div = document.createElement("div");
+function scheduleSave() {
+    clearTimeout(saveTimeout);
+    saveTimeout = setTimeout(() => saveChat(), 180);
+}
 
-    div.className = "message " + type;
-    div.dataset.id = id;
-    div.dataset.status = statusValue;
+function getMessageStatusMarkup(status) {
+    return status === "sent" ? "✓" : "✓✓";
+}
 
-    div.innerHTML = `
-        <div>${message}</div>
+function renderMessages() {
+    elements.chat.querySelectorAll(".message").forEach(message => message.remove());
+    elements.emptyChat.hidden = messages.length > 0;
 
-        <div class="time">
+    messages.forEach(message => {
+        const bubble = document.createElement("article");
+        bubble.className = `message ${message.type}`;
+        bubble.dataset.id = message.id;
 
-            ${time}
+        const content = document.createElement("span");
+        content.className = "message-content";
+        content.textContent = message.text;
+        bubble.append(content);
 
-            ${type === "sent"
-                ? getStatusMarkup(statusValue)
-                : ""
-            }
-
-        </div>
-    `;
-
-    addDeleteEvent(div);
-    chat.appendChild(div);
-    chat.scrollTop = chat.scrollHeight;
-
-    messageInput.value = "";
-    timeInput.value = "";
-
-    saveChat();
-
-});
-
-messageInput.addEventListener("keydown", function (e) {
-
-    if (e.key === "Enter" && !e.shiftKey) {
-
-        e.preventDefault();
-        addMessageBtn.click();
-
-    }
-
-});
-
-// ===============================
-// DELETE MESSAGE
-// ===============================
-
-function addDeleteEvent(message) {
-
-    message.addEventListener("dblclick", function () {
-
-        if (confirm("Delete this message?")) {
-
-            this.remove();
-            saveChat();
-
+        const time = document.createElement("span");
+        time.className = "message-time";
+        time.textContent = message.time;
+        if (message.type === "sent") {
+            const checks = document.createElement("span");
+            checks.className = `message-checks${message.status === "read" ? " read" : ""}`;
+            checks.textContent = getMessageStatusMarkup(message.status);
+            time.append(checks);
         }
+        bubble.append(time);
 
+        const removeButton = document.createElement("button");
+        removeButton.className = "message-delete";
+        removeButton.type = "button";
+        removeButton.setAttribute("aria-label", "Remove message");
+        removeButton.textContent = "×";
+        removeButton.addEventListener("click", () => {
+            messages = messages.filter(item => item.id !== message.id);
+            renderMessages();
+            saveChat();
+        });
+        bubble.append(removeButton);
+        elements.chat.append(bubble);
     });
 
+    elements.messageCount.textContent = String(messages.length);
+    elements.messageWord.textContent = messages.length === 1 ? "message" : "messages";
+    elements.chat.scrollTop = elements.chat.scrollHeight;
 }
 
-function attachDeleteEvents() {
+function cleanMessage(value, index = 0) {
+    if (!value || typeof value !== "object") return null;
+    const type = value.type === "sent" ? "sent" : "received";
+    const status = ["sent", "delivered", "read"].includes(value.status) ? value.status : "sent";
+    let text = typeof value.text === "string" ? value.text : "";
+    let time = typeof value.time === "string" ? value.time : "";
 
-    document.querySelectorAll(".message").forEach(message => {
+    if (!text && typeof value.html === "string") {
+        const parsed = new DOMParser().parseFromString(value.html, "text/html");
+        const timeElement = parsed.querySelector(".time, .message-time");
+        if (timeElement) {
+            const timeText = timeElement.textContent.replace(/[✓✔]/g, "").trim();
+            if (/^\d{1,2}:\d{2}(?:\s?[AP]M)?$/i.test(timeText)) time = timeText;
+            timeElement.remove();
+        }
+        text = parsed.body.textContent.trim();
+    }
 
-        addDeleteEvent(message);
+    text = text.slice(0, 1200);
+    if (!text) return null;
+    if (!/^\d{1,2}:\d{2}(?:\s?[AP]M)?$/i.test(time)) time = formatTime();
 
+    return {
+        id: typeof value.id === "string" && value.id ? value.id : `${Date.now()}-${index}-${Math.random().toString(36).slice(2, 7)}`,
+        type,
+        status,
+        text,
+        time
+    };
+}
+
+function normalizeImportedState(data) {
+    if (!data || typeof data !== "object" || Array.isArray(data)) {
+        throw new Error("The file does not contain a chat.");
+    }
+    if (!Array.isArray(data.messages)) {
+        throw new Error("The chat file has no valid messages list.");
+    }
+
+    return {
+        contact: typeof data.contact === "string" ? data.contact.slice(0, 40) : "Alex Morgan",
+        status: ["online", "typing...", "last seen today at 8:00 PM", "last seen recently"].includes(data.status) ? data.status : "online",
+        profile: typeof data.profile === "string" && /^data:image\/(?:png|jpe?g|webp|gif);base64,/i.test(data.profile) && data.profile.length <= 3_000_000
+            ? data.profile
+            : DEFAULT_PROFILE,
+        phoneTime: /^\d{2}:\d{2}$/.test(data.phoneTime) ? data.phoneTime : "09:41",
+        theme: ["dark", "light", "whatsapp"].includes(data.theme) ? data.theme : "dark",
+        wallpaper: ["default", "soft", "night", "sunset"].includes(data.wallpaper) ? data.wallpaper : "default",
+        typing: data.typing === "on" ? "on" : "off",
+        messageStatus: ["sent", "delivered", "read"].includes(data.messageStatus) ? data.messageStatus : "sent",
+        messages: data.messages.map(cleanMessage).filter(Boolean).slice(0, 500)
+    };
+}
+
+function applyState(data) {
+    const state = normalizeImportedState(data);
+    elements.contactInput.value = state.contact;
+    elements.statusInput.value = state.status;
+    elements.themeInput.value = state.theme;
+    elements.wallpaperInput.value = state.wallpaper;
+    elements.typingInput.value = state.typing;
+    elements.messageStatusInput.value = state.messageStatus;
+    elements.phoneTimeInput.value = state.phoneTime;
+    profileImage = state.profile;
+    updateProfileSources(profileImage);
+    updateContactPreview();
+    updatePhoneClock();
+    updateStatusPreview();
+    applyTheme(elements.themeInput.value);
+    applyWallpaper(elements.wallpaperInput.value);
+    messages = state.messages;
+    renderMessages();
+}
+
+function loadSavedChat() {
+    try {
+        const saved = localStorage.getItem(STORAGE_KEY) || localStorage.getItem(LEGACY_STORAGE_KEY);
+        if (!saved) return;
+        applyState(JSON.parse(saved));
+    } catch (error) {
+        showToast("The saved chat could not be opened. Start a new conversation or import a backup.");
+        console.error("ChatMock could not load the saved chat.", error);
+    }
+}
+
+function addMessage() {
+    const text = elements.messageInput.value.trim();
+    if (!text) {
+        elements.messageInput.focus();
+        showToast("Write a message before adding it.");
+        return;
+    }
+
+    messages.push({
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        type: elements.typeInput.value === "sent" ? "sent" : "received",
+        status: elements.messageStatusInput.value,
+        text: text.slice(0, 1200),
+        time: elements.timeInput.value ? formatClockTime(elements.timeInput.value) : formatTime()
     });
-
+    messages = messages.slice(-500);
+    elements.messageInput.value = "";
+    elements.timeInput.value = "";
+    renderMessages();
+    saveChat();
+    elements.messageInput.focus();
 }
 
-// ===============================
-// SAVE CHAT
-// ===============================
-
-async function saveChat() {
+function parseTextImport(text) {
+    if (!text.includes("Messages:")) {
+        throw new Error("This file is not a ChatMock chat export.");
+    }
 
     const data = {
-
-        contact: contactInput.value,
-        status: statusInput.value,
-        profile: profile.src,
-        phoneTime: phoneTime.textContent,
-        theme: themeInput.value,
-        wallpaper: wallpaperInput.value,
-        typing: typingInput.value,
-        messageStatus: messageStatusInput.value,
-        messages: getMessagesSnapshot()
-
+        contact: "Alex Morgan",
+        status: "online",
+        theme: "dark",
+        wallpaper: "default",
+        typing: "off",
+        messageStatus: "sent",
+        messages: []
     };
+    let inMessages = false;
 
-    localStorage.setItem("chatData", JSON.stringify(data));
-
-    try {
-
-        await fetch("/api/chat", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
-        });
-
-    } catch (error) {
-
-        console.warn("Server sync failed, using local fallback.", error);
-
-    }
-
-}
-
-// ===============================
-// LOAD CHAT
-// ===============================
-
-async function loadChat() {
-
-    try {
-
-        const response = await fetch("/api/chat");
-
-        if (response.ok) {
-
-            const data = await response.json();
-
-            if (data) {
-
-                applyImportedState(data);
-                return;
-
-            }
-
+    text.split(/\r?\n/).forEach(line => {
+        if (!inMessages && line === "Messages:") {
+            inMessages = true;
+            return;
+        }
+        if (!inMessages) {
+            const separator = line.indexOf(":");
+            if (separator < 0) return;
+            const key = line.slice(0, separator).trim().toLowerCase();
+            const value = line.slice(separator + 1).trim();
+            if (key === "contact") data.contact = value;
+            if (key === "status") data.status = value;
+            if (key === "theme") data.theme = value;
+            if (key === "wallpaper") data.wallpaper = value;
+            if (key === "typing") data.typing = value;
+            if (key === "profile" && /^data:image\/(?:png|jpe?g|webp|gif);base64,/i.test(value)) data.profile = value;
+            return;
         }
 
-    } catch (error) {
-
-        console.warn("Server load failed, using local fallback.", error);
-
-    }
-
-    const saved = localStorage.getItem("chatData");
-
-    if (!saved) return;
-
-    const data = JSON.parse(saved);
-    applyImportedState(data);
-
-}
-
-loadChat();
-applyTheme(themeInput.value);
-applyWallpaper(wallpaperInput.value);
-toggleTypingIndicator(typingInput.value === "on");
-updatePhoneTime();
-setInterval(updatePhoneTime, 60000);
-logActivity("page_load", "generator");
-
-document.addEventListener("click", (event) => {
-    captureInteraction("click", event);
-}, true);
-
-window.addEventListener("keydown", (event) => {
-
-    if (["Enter", "Tab", "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) {
-        captureInteraction("key", event);
-    }
-
-}, true);
-
-// ===============================
-// SAVE BUTTON
-// ===============================
-
-saveChatBtn.addEventListener("click", () => {
-
-    saveChat();
-    showToast("✔ Chat Saved Successfully");
-
-});
-
-// ===============================
-// CLEAR CHAT
-// ===============================
-
-clearChatBtn.addEventListener("click", () => {
-
-    if (!confirm("Clear all messages?")) return;
-
-    chat.innerHTML = "";
-    saveChat();
-
-});
-
-// ===============================
-// EXPORT / IMPORT CHAT
-// ===============================
-
-exportChatBtn.addEventListener("click", () => {
-
-    const exportText = buildTextExport();
-    const blob = new Blob([exportText], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-
-    link.href = url;
-    link.download = "chat.txt";
-    link.click();
-
-    URL.revokeObjectURL(url);
-    showToast("✔ Chat exported successfully");
-
-});
-
-importChatBtn.addEventListener("click", () => {
-
-    importChatInput.click();
-
-});
-
-importChatInput.addEventListener("change", function () {
-
-    const file = this.files[0];
-
-    if (!file) return;
-
-    const reader = new FileReader();
-
-    reader.onload = function (e) {
-
-        try {
-
-            const text = e.target.result;
-            const fileName = file.name.toLowerCase();
-
-            if (fileName.endsWith(".txt") || fileName.endsWith(".chat")) {
-
-                const lines = text.split(/\r?\n/).filter(Boolean);
-                const data = {
-                    contact: "",
-                    status: "online",
-                    theme: "dark",
-                    wallpaper: "default",
-                    typing: "off",
-                    messageStatus: "sent",
-                    messages: []
-                };
-
-                let inMessages = false;
-
-                lines.forEach(line => {
-
-                    if (line.startsWith("Contact:")) {
-
-                        data.contact = line.replace("Contact:", "").trim();
-
-                    } else if (line.startsWith("Status:")) {
-
-                        data.status = line.replace("Status:", "").trim();
-
-                    } else if (line.startsWith("Theme:")) {
-
-                        data.theme = line.replace("Theme:", "").trim();
-
-                    } else if (line.startsWith("Wallpaper:")) {
-
-                        data.wallpaper = line.replace("Wallpaper:", "").trim();
-
-                    } else if (line.startsWith("Typing:")) {
-
-                        data.typing = line.replace("Typing:", "").trim();
-
-                    } else if (line.startsWith("Profile:")) {
-
-                        data.profile = line.replace("Profile:", "").trim();
-
-                    } else if (line === "Messages:") {
-
-                        inMessages = true;
-
-                    } else if (inMessages) {
-
-                        const [type, status, ...messageParts] = line.split("|");
-                        const messageText = messageParts.join("|").trim();
-
-                        data.messages.push({
-                            id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-                            type: type || "received",
-                            status: status || "sent",
-                            html: `
-        <div>${messageText}</div>
-
-        <div class="time">
-
-            ${formatTime()}
-
-            ${type === "sent" ? getStatusMarkup(status || "sent") : ""}
-
-        </div>
-    `
-                        });
-
-                    }
-
-                });
-
-                applyImportedState(data);
-
-            } else {
-
-                const data = JSON.parse(text);
-                applyImportedState(data);
-
-            }
-
-            saveChat();
-            showToast("✔ Chat imported successfully");
-
-        } catch (error) {
-
-            showToast("❌ Invalid chat file");
-
+        const first = line.indexOf("|");
+        const second = first < 0 ? -1 : line.indexOf("|", first + 1);
+        if (first < 0 || second < 0) return;
+        const type = line.slice(0, first);
+        const status = line.slice(first + 1, second);
+        const message = line.slice(second + 1);
+        if (message.trim()) {
+            data.messages.push({ type, status, text: message, time: formatTime() });
         }
-
-    };
-
-    reader.readAsText(file);
-
-});
-
-emojiPicker.addEventListener("click", function (event) {
-
-    const button = event.target.closest("button[data-emoji]");
-
-    if (!button) return;
-
-    const emoji = button.dataset.emoji;
-    const start = messageInput.selectionStart;
-    const end = messageInput.selectionEnd;
-    const text = messageInput.value;
-
-    messageInput.value = text.slice(0, start) + emoji + text.slice(end);
-    messageInput.focus();
-    const cursor = start + emoji.length;
-    messageInput.setSelectionRange(cursor, cursor);
-
-});
-
-// ===============================
-// SCREENSHOT
-// ===============================
-
-screenshotBtn.addEventListener("click", () => {
-
-    html2canvas(document.querySelector(".phone"), {
-
-        scale: 3,
-        useCORS: true,
-        backgroundColor: null
-
-    }).then(canvas => {
-
-        const link = document.createElement("a");
-
-        link.download = "whatsapp-chat.png";
-
-        link.href = canvas.toDataURL("image/png");
-
-        link.click();
-
     });
 
+    return data;
+}
+
+function downloadFile(contents, type, fileName) {
+    const url = URL.createObjectURL(new Blob([contents], { type }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+elements.contactInput.addEventListener("input", () => {
+    updateContactPreview();
+    scheduleSave();
 });
 
+elements.statusInput.addEventListener("change", () => {
+    updateStatusPreview();
+    scheduleSave();
+});
 
+elements.themeInput.addEventListener("change", () => {
+    applyTheme(elements.themeInput.value);
+    scheduleSave();
+});
+
+elements.wallpaperInput.addEventListener("change", () => {
+    applyWallpaper(elements.wallpaperInput.value);
+    scheduleSave();
+});
+
+elements.typingInput.addEventListener("change", () => {
+    updateStatusPreview();
+    scheduleSave();
+});
+
+elements.messageStatusInput.addEventListener("change", scheduleSave);
+elements.phoneTimeInput.addEventListener("input", () => {
+    updatePhoneClock();
+    scheduleSave();
+});
+
+elements.changeProfile.addEventListener("click", () => elements.profileUpload.click());
+elements.profileUpload.addEventListener("change", () => {
+    const file = elements.profileUpload.files[0];
+    elements.profileUpload.value = "";
+    if (!file) return;
+    if (!["image/png", "image/jpeg", "image/webp", "image/gif"].includes(file.type)) {
+        showToast("Choose a PNG, JPEG, WebP, or GIF image for the profile photo.");
+        return;
+    }
+    if (file.size > MAX_PROFILE_SIZE) {
+        showToast("Choose an image smaller than 2 MB.");
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onerror = () => showToast("That image could not be read. Please try another.");
+    reader.onload = () => {
+        if (typeof reader.result !== "string" || !reader.result.startsWith("data:image/")) {
+            showToast("That image could not be loaded.");
+            return;
+        }
+        profileImage = reader.result;
+        updateProfileSources(profileImage);
+        saveChat();
+    };
+    reader.readAsDataURL(file);
+});
+
+elements.addMessage.addEventListener("click", addMessage);
+elements.messageInput.addEventListener("keydown", event => {
+    if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+        event.preventDefault();
+        addMessage();
+    }
+});
+
+elements.emojiPicker.addEventListener("click", event => {
+    const button = event.target.closest("button[data-emoji]");
+    if (!button) return;
+    const input = elements.messageInput;
+    const start = input.selectionStart ?? input.value.length;
+    const end = input.selectionEnd ?? start;
+    input.setRangeText(button.dataset.emoji, start, end, "end");
+    input.focus();
+});
+
+elements.saveChat.addEventListener("click", () => saveChat({ notify: true }));
+elements.clearChat.addEventListener("click", () => {
+    if (!messages.length) {
+        showToast("There are no messages to clear.");
+        return;
+    }
+    if (!window.confirm("Clear all messages from this conversation?")) return;
+    messages = [];
+    renderMessages();
+    saveChat();
+    showToast("Conversation cleared.");
+});
+
+elements.exportChat.addEventListener("click", () => {
+    downloadFile(JSON.stringify(getState(), null, 2), "application/json", "chatmock-chat.json");
+    showToast("Chat data exported.");
+});
+
+elements.importChat.addEventListener("click", () => elements.importChatInput.click());
+elements.importChatInput.addEventListener("change", () => {
+    const file = elements.importChatInput.files[0];
+    elements.importChatInput.value = "";
+    if (!file) return;
+    if (file.size > MAX_IMPORT_SIZE) {
+        showToast("Choose a chat file smaller than 5 MB.");
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onerror = () => showToast("That file could not be read.");
+    reader.onload = () => {
+        try {
+            const content = String(reader.result || "");
+            let imported;
+            try {
+                imported = JSON.parse(content);
+            } catch {
+                imported = parseTextImport(content);
+            }
+            applyState(imported);
+            if (!saveChat()) return;
+            showToast("Chat imported successfully.");
+        } catch (error) {
+            showToast(error instanceof Error ? error.message : "This chat file is invalid.");
+        }
+    };
+    reader.readAsText(file);
+});
+
+elements.downloadChat.addEventListener("click", async () => {
+    if (typeof window.html2canvas !== "function") {
+        showToast("Image export could not load. Check your connection and try again.");
+        return;
+    }
+
+    elements.phonePreview.classList.add("exporting");
+    elements.downloadChat.disabled = true;
+    try {
+        const canvas = await window.html2canvas(elements.phonePreview, {
+            scale: 3,
+            useCORS: true,
+            backgroundColor: null
+        });
+        const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+        if (!blob) throw new Error("The screenshot image could not be created.");
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "chatmock-conversation.png";
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        showToast("Your chat image is ready.");
+    } catch (error) {
+        showToast("Image export failed. Please try again.");
+        console.error("ChatMock could not export the preview image.", error);
+    } finally {
+        elements.phonePreview.classList.remove("exporting");
+        elements.downloadChat.disabled = false;
+    }
+});
+
+loadSavedChat();
+updateContactPreview();
+updatePhoneClock();
+updateStatusPreview();
+applyTheme(elements.themeInput.value);
+applyWallpaper(elements.wallpaperInput.value);
+renderMessages();

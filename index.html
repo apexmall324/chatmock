@@ -1,463 +1,227 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
-<title>WhatsApp Chat Generator</title>
-
-<link rel="stylesheet" href="style.css">
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
-
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.1/css/all.min.css">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7f4">
+    <meta name="description" content="Create and export polished WhatsApp-style chat mockups. Free, private, and saved in your browser.">
+    <title>ChatMock — WhatsApp Chat Studio</title>
+    <link rel="icon" href="assets/profile.png" type="image/png">
+    <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-
-<!-- ========================= -->
-<!-- NAVBAR -->
-<!-- ========================= -->
-
-<header class="navbar">
-
-    <div class="logo">
-
-        <i class="fa-brands fa-whatsapp"></i>
-
-        ChatMock
-
-    </div>
-
-    <div class="nav-buttons">
-
-        <a href="YOUR_PORTFOLIO_LINK" target="_blank">
-
-            🌐 Portfolio
-
+    <header class="topbar">
+        <a class="brand" href="#" aria-label="ChatMock home">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><path d="M20.5 11.7a8.3 8.3 0 0 1-12.3 7.2L3 20l1.2-4.9A8.3 8.3 0 1 1 20.5 11.7Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M8.4 8.2c.3-.6.6-.6.9-.6h.4c.2 0 .4 0 .5.4l.7 1.6c.1.3.1.5-.1.7l-.5.6c-.2.2-.2.4 0 .7.5.8 1.2 1.5 2 2 .3.2.5.2.7 0l.7-.8c.2-.2.4-.3.7-.2l1.5.7c.3.1.4.3.4.5 0 .3-.2 1-.6 1.3-.4.4-1 .6-1.6.6s-1.8-.3-3-1.1c-1.1-.7-2-1.7-2.6-2.7-.6-.9-.9-1.9-.9-2.5 0-.6.3-1.1.8-1.2Z" fill="currentColor"/></svg>
+            </span>
+            <span>chat<span class="brand-light">mock</span></span>
         </a>
-
-    </div>
-
-</header>
-
-<!-- ========================= -->
-<!-- HERO -->
-<!-- ========================= -->
-
-<section class="hero">
-
-    <h1>
-
-        Professional WhatsApp Chat Generator
-
-    </h1>
-
-    <p>
-
-        Create realistic WhatsApp conversations for
-        presentations, mockups, UI designs and demonstrations.
-
-    </p>
-
-    <a href="#generator" class="hero-btn">
-
-        🚀 Start Creating
-
-    </a>
-
-</section>
-
-<!-- ========================= -->
-<!-- FEATURES -->
-<!-- ========================= -->
-
-<section class="features">
-
-    <div class="feature">
-
-        📷
-
-        <h3>HD Screenshots</h3>
-
-        <p>Export realistic WhatsApp screenshots.</p>
-
-    </div>
-
-    <div class="feature">
-
-        💾
-
-        <h3>Save Chats</h3>
-
-        <p>Your work is saved automatically.</p>
-
-    </div>
-
-    <div class="feature">
-
-        ⚡
-
-        <h3>Fast & Free</h3>
-
-        <p>No account required.</p>
-
-    </div>
-
-</section>
-
-<!-- ========================= -->
-<!-- GENERATOR -->
-<!-- ========================= -->
-
-<section id="generator">
-
-<div class="container">
-<!-- ========================= -->
-<!-- LEFT CONTROL PANEL -->
-<!-- ========================= -->
-
-<div class="editor">
-
-<h2>WhatsApp Generator</h2>
-
-<label>Contact Name</label>
-
-<input
-type="text"
-id="contactInput"
-value="type the name here">
-
-<label>Profile Picture</label>
-
-<button id="changeProfile">
-
-📷 Change Picture
-
-</button>
-<label>Status</label>
-
-<select id="statusInput">
-
-<option>online</option>
-
-<option>typing...</option>
-
-<option>last seen today at 8:00 PM</option>
-
-</select>
-
-<div class="control-card">
-
-    <label>Theme</label>
-
-    <select id="themeInput">
-        <option value="dark">Dark</option>
-        <option value="light">Light</option>
-        <option value="whatsapp">WhatsApp</option>
-    </select>
-
-    <label>Wallpaper</label>
-
-    <select id="wallpaperInput">
-        <option value="default">Default</option>
-        <option value="soft">Soft</option>
-        <option value="night">Night</option>
-        <option value="sunset">Sunset</option>
-    </select>
-
-    <label>Typing Indicator</label>
-
-    <select id="typingInput">
-        <option value="off">Off</option>
-        <option value="on">On</option>
-    </select>
-
-    <label>Message Status</label>
-
-    <select id="messageStatusInput">
-        <option value="sent">Sent</option>
-        <option value="delivered">Delivered</option>
-        <option value="read">Read</option>
-    </select>
-
-    <label>Emoji Picker</label>
-
-    <div id="emojiPicker" class="emoji-picker">
-        <button type="button" data-emoji="😊">😊</button>
-        <button type="button" data-emoji="😂">😂</button>
-        <button type="button" data-emoji="❤️">❤️</button>
-        <button type="button" data-emoji="👍">👍</button>
-        <button type="button" data-emoji="🎉">🎉</button>
-        <button type="button" data-emoji="🔥">🔥</button>
-    </div>
-
-</div>
-
-<label>Message</label>
-
-<textarea id="messageInput"></textarea>
-
-<label>Time</label>
-
-<input
-type="text"
-id="timeInput"
-placeholder="12:59">
-
-<label>Message Type</label>
-
-<select id="typeInput">
-
-<option value="sent">Sent</option>
-
-<option value="received">Received</option>
-
-</select>
-
-<button id="addMessage">
-
-Add Message
-
-</button>
-<button id="saveChat">
-    💾 Save Chat
-</button>
-
-<button id="clearChat">
-    🗑 Clear Chat
-</button>
-
-<button id="downloadChat">
-    📷 Screenshot
-</button>
-
-<button id="exportChat">
-    📥 Export Chat
-</button>
-
-<button id="importChat">
-    📤 Import Chat
-</button>
-
-<input type="file" id="importChatInput" accept=".txt,.json,.chat,application/json,text/plain" hidden>
-
-</div>
-
-<!-- ========================= -->
-<!-- PHONE -->
-<!-- ========================= -->
-
-<div class="phone">
-
-<!-- STATUS BAR -->
-
-<div class="status-bar">
-
-<div id="phoneTime">
-9:41
-</div>
-
-<div>
-
-<i class="fa-solid fa-signal"></i>
-
-<i class="fa-solid fa-wifi"></i>
-
-<i class="fa-solid fa-battery-full"></i>
-
-</div>
-
-</div>
-
-<!-- HEADER -->
-
-<div class="header">
-
-<div class="left">
-
-<i class="fa-solid fa-arrow-left"></i>
-
-<div class="profile-container">
-
-    <img src="assets/profile.png" id="profile">
-
-    <input
-        type="file"
-        id="profileUpload"
-        accept="image/*"
-        hidden>
-
-</div>
-
-<div>
-
-<h3 id="contactName">
-
-Mi Amor ❤️
-
-</h3>
-
-<small id="status">
-
-online
-
-</small>
-
-<div id="typingIndicator" class="typing-indicator" hidden>
-
-    typing...
-
-</div>
-
-</div>
-
-</div>
-
-<div class="right">
-
-<i class="fa-solid fa-video"></i>
-
-<i class="fa-solid fa-phone"></i>
-
-<i class="fa-solid fa-ellipsis-vertical"></i>
-
-</div>
-
-</div>
-
-<!-- CHAT -->
-
-<div class="chat" id="chat">
-
-<div class="date">
-
-Today
-
-</div>
-
-</div>
-
-<!-- INPUT -->
-
-<div class="bottom">
-
-<i class="fa-regular fa-face-smile"></i>
-
-<input
-placeholder="Message">
-
-<i class="fa-solid fa-paperclip"></i>
-
-<i class="fa-solid fa-camera"></i>
-
-<div class="mic">
-
-<i class="fa-solid fa-microphone"></i>
-
-</div>
-
-</div>
-
-</div>
-
-</div>
-
-</section>
-
-<!-- ========================= -->
-<!-- ABOUT -->
-<!-- ========================= -->
-
-<!-- ========================= -->
-<!-- DEVELOPER -->
-<!-- ========================= -->
-
-<section class="developer">
-
-    <div class="developer-card">
-
-        <span class="badge">🚀 Available for Freelance</span>
-
-        <h2>Like this tool?</h2>
-
-        <p class="intro">
-            Hi 👋 I'm <strong>Emmanuella Arthur</strong>,
-            a Web & Software Developer from Ghana.
-        </p>
-
-        <p>
-            I build modern, fast and responsive digital solutions for businesses,
-            schools and individuals.
-        </p>
-
-        <div class="services">
-
-            <div class="service">💻 Business Websites</div>
-
-            <div class="service">🏫 School Management Systems</div>
-
-            <div class="service">🛒 E-Commerce Platforms</div>
-
-            <div class="service">📱 Mobile Apps</div>
-
-            <div class="service">⚙ Custom Web Applications</div>
-
+        <div class="topbar-right">
+            <span class="privacy-note"><span class="privacy-dot"></span> Private by design</span>
+            <a class="topbar-link" href="https://ewusuwaaarthur.github.io/portfolio/" target="_blank" rel="noopener noreferrer">Portfolio <span aria-hidden="true">↗</span></a>
+            <a class="topbar-link" href="#studio">Open the studio <span aria-hidden="true">↗</span></a>
         </div>
+    </header>
 
-        <p class="closing">
+    <main>
+        <section class="intro" aria-labelledby="page-title">
+            <div class="intro-copy">
+                <p class="eyebrow"><span class="eyebrow-line"></span> THE CONVERSATION STUDIO</p>
+                <h1 id="page-title">Make it look<br>like <span>it happened.</span></h1>
+                <p class="intro-description">Build believable chat mockups in minutes. Write the conversation, make it yours, and export a crisp image — no account, no fuss.</p>
+            </div>
+            <div class="intro-aside" aria-label="Three easy steps">
+                <div class="step"><span>01</span><p>Write your chat</p></div>
+                <div class="step"><span>02</span><p>Make it yours</p></div>
+                <div class="step"><span>03</span><p>Export &amp; share</p></div>
+            </div>
+        </section>
 
-            Let's build something amazing together.
+        <section class="studio" id="studio" aria-label="Chat generator">
+            <div class="editor-panel">
+                <div class="panel-heading">
+                    <div>
+                        <p class="panel-kicker">YOUR WORKSPACE</p>
+                        <h2>Build a conversation</h2>
+                    </div>
+                    <span class="autosave-label"><span class="autosave-dot"></span> Auto-save on</span>
+                </div>
 
-        </p>
+                <div class="editor-scroll">
+                    <fieldset class="form-section">
+                        <legend><span class="section-number">01</span> Contact</legend>
+                        <label for="contactInput">Display name</label>
+                        <input type="text" id="contactInput" value="Alex Morgan" maxlength="40" autocomplete="off">
+                        <label for="statusInput">Contact status</label>
+                        <select id="statusInput">
+                            <option value="online">online</option>
+                            <option value="typing...">typing...</option>
+                            <option value="last seen today at 8:00 PM">last seen today at 8:00 PM</option>
+                            <option value="last seen recently">last seen recently</option>
+                        </select>
+                        <label>Profile photo</label>
+                        <div class="upload-row">
+                            <img src="assets/profile.png" id="profileThumb" alt="" class="profile-thumb">
+                            <span class="upload-hint">Use a photo or keep the default</span>
+                            <button id="changeProfile" class="button button-quiet" type="button">Upload</button>
+                            <input type="file" id="profileUpload" accept="image/png,image/jpeg,image/webp,image/gif" hidden>
+                        </div>
+                    </fieldset>
 
-        <div class="developer-buttons">
+                    <fieldset class="form-section">
+                        <legend><span class="section-number">02</span> Appearance</legend>
+                        <div class="field-pair">
+                            <div>
+                                <label for="themeInput">Chat theme</label>
+                                <select id="themeInput">
+                                    <option value="dark">Dark</option>
+                                    <option value="light">Light</option>
+                                    <option value="whatsapp">Classic green</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="wallpaperInput">Wallpaper</label>
+                                <select id="wallpaperInput">
+                                    <option value="default">Doodles</option>
+                                    <option value="soft">Soft</option>
+                                    <option value="night">Midnight</option>
+                                    <option value="sunset">Sunset</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="field-pair">
+                            <div>
+                                <label for="phoneTimeInput">Phone time</label>
+                                <input type="time" id="phoneTimeInput" value="09:41">
+                            </div>
+                            <div>
+                                <label for="typingInput">Typing status</label>
+                                <select id="typingInput">
+                                    <option value="off">Hidden</option>
+                                    <option value="on">Typing…</option>
+                                </select>
+                            </div>
+                        </div>
+                    </fieldset>
 
-            <a href="https://wa.me/233597323795" target="_blank" class="whatsapp">
+                    <fieldset class="form-section message-section">
+                        <legend><span class="section-number">03</span> Add a message</legend>
+                        <label for="messageInput">Message text</label>
+                        <textarea id="messageInput" rows="3" maxlength="1200" placeholder="Type a message…"></textarea>
+                        <div class="emoji-picker" id="emojiPicker" aria-label="Add an emoji">
+                            <button type="button" data-emoji="😊" aria-label="Add smiling face">😊</button>
+                            <button type="button" data-emoji="😂" aria-label="Add laughing face">😂</button>
+                            <button type="button" data-emoji="❤️" aria-label="Add heart">❤️</button>
+                            <button type="button" data-emoji="👍" aria-label="Add thumbs up">👍</button>
+                            <button type="button" data-emoji="🎉" aria-label="Add party popper">🎉</button>
+                            <button type="button" data-emoji="🔥" aria-label="Add fire">🔥</button>
+                        </div>
+                        <div class="field-pair message-options">
+                            <div>
+                                <label for="typeInput">From</label>
+                                <select id="typeInput">
+                                    <option value="sent">You</option>
+                                    <option value="received">Contact</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="timeInput">Message time</label>
+                                <input type="time" id="timeInput">
+                            </div>
+                        </div>
+                        <div class="field-pair message-options">
+                            <div>
+                                <label for="messageStatusInput">Delivery status</label>
+                                <select id="messageStatusInput">
+                                    <option value="sent">Sent</option>
+                                    <option value="delivered">Delivered</option>
+                                    <option value="read">Read</option>
+                                </select>
+                            </div>
+                            <p class="field-help">Applies to messages from you.</p>
+                        </div>
+                        <button id="addMessage" class="button button-primary add-button" type="button">
+                            <span aria-hidden="true">＋</span> Add to conversation
+                        </button>
+                        <p class="keyboard-hint">Tip: press <kbd>Enter</kbd> to add · <kbd>Shift</kbd> + <kbd>Enter</kbd> for a new line</p>
+                    </fieldset>
+                </div>
 
-                💬 Chat on WhatsApp
+                <div class="editor-footer">
+                    <button id="saveChat" class="button button-quiet" type="button"><span aria-hidden="true">✓</span> Save</button>
+                    <button id="clearChat" class="button button-quiet button-danger" type="button">Clear chat</button>
+                </div>
+            </div>
 
-            </a>
+            <section class="preview-panel" aria-labelledby="preview-title">
+                <div class="preview-heading">
+                    <div>
+                        <p class="panel-kicker">LIVE PREVIEW</p>
+                        <h2 id="preview-title">Your conversation</h2>
+                    </div>
+                    <span class="preview-count"><span id="messageCount">0</span> <span id="messageWord">messages</span></span>
+                </div>
 
-            <a href="YOUR_PORTFOLIO_LINK" target="_blank" class="portfolio">
+                <div class="preview-stage">
+                    <div class="phone" id="phonePreview">
+                        <div class="status-bar">
+                            <span id="phoneTime">09:41</span>
+                            <span class="device-status" aria-hidden="true"><span>●●●</span><span>◔</span><span class="battery-icon"><i></i></span></span>
+                        </div>
+                        <div class="chat-header">
+                            <span class="back-arrow" aria-hidden="true">‹</span>
+                            <div class="profile-container">
+                                <img src="assets/profile.png" id="profile" alt="">
+                                <span class="online-indicator" aria-hidden="true"></span>
+                            </div>
+                            <div class="contact-details">
+                                <h3 id="contactName">Alex Morgan</h3>
+                                <small id="status">online</small>
+                                <span id="typingIndicator" class="typing-indicator" hidden>typing…</span>
+                            </div>
+                            <div class="header-actions" aria-hidden="true"><span>▣</span><span>☎</span><span>⋮</span></div>
+                        </div>
+                        <div class="chat wallpaper-default" id="chat" aria-live="polite" aria-label="Chat messages">
+                            <div class="date">Today</div>
+                            <p class="empty-chat" id="emptyChat">Your messages will<br>show up here.</p>
+                        </div>
+                        <div class="chat-composer" aria-hidden="true">
+                            <span class="composer-emoji">☻</span>
+                            <span class="composer-placeholder">Message</span>
+                            <span class="composer-clip">⌁</span>
+                            <span class="composer-mic">●</span>
+                        </div>
+                    </div>
+                    <p class="preview-caption"><span class="caption-sparkle">✳</span> Every detail updates as you create</p>
+                </div>
 
-                🌍 Visit My Portfolio
+                <div class="export-bar">
+                    <div class="export-copy">
+                        <strong>Ready to share?</strong>
+                        <span>Your chat, exported as a crisp PNG.</span>
+                    </div>
+                    <button id="downloadChat" class="button button-export" type="button"><span aria-hidden="true">↓</span> Export image</button>
+                    <div class="export-secondary">
+                        <button id="exportChat" type="button">Export chat data</button>
+                        <span class="export-divider">·</span>
+                        <button id="importChat" type="button">Import chat</button>
+                        <input type="file" id="importChatInput" accept=".txt,.json,.chat,application/json,text/plain" hidden>
+                    </div>
+                </div>
+            </section>
+        </section>
+    </main>
 
-            </a>
+    <footer class="site-footer">
+        <a class="footer-brand" href="#" aria-label="ChatMock home">chat<span>mock</span></a>
+        <p>Made for ideas, demos &amp; good stories.</p>
+        <a class="footer-portfolio" href="https://ewusuwaaarthur.github.io/portfolio/" target="_blank" rel="noopener noreferrer">Visit my portfolio <span aria-hidden="true">↗</span></a>
+        <p class="footer-privacy"><span class="privacy-dot"></span> Saved only on this device</p>
+    </footer>
 
-        </div>
-
-    </div>
-
-</section>
-
-<!-- ========================= -->
-<!-- FOOTER -->
-<!-- ========================= -->
-
-<footer>
-
-    © 2026 ChatMock
-
-    <br>
-
-    Designed & Developed by
-
-    <strong>Emmanuella Arthur</strong>
-
-</footer>
-
-<div id="toast" class="toast"></div>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-<script src="script.js"></script>
-
-
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
+    <script src="script.js" defer></script>
 </body>
 </html>
